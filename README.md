@@ -1,3 +1,3 @@
 # 3Dpractice
 
-im replace sift algorithm to with ORB 
+i replace sift algorithm with ORB 
