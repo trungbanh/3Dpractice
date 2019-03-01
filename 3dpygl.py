@@ -7,7 +7,9 @@ from numpy import *
 import sys
 import pickle
 
-width,height = 1548,1161
+import objloader
+
+width,height = 1548,1152
 
 
 def set_projection_from_camera(K):
@@ -18,8 +20,11 @@ def set_projection_from_camera(K):
     
     fx = K[0,0]
     fy = K[1,1]
+    # print (fx, " ", fy )
     fovy = 2*arctan(0.5*height/fy)*180/pi
     aspect = (width*fy)/(height*fx)
+    # print (fovy)
+    # print (aspect)
 
     # define the near and far clipping planes
     near = 0.1
@@ -63,7 +68,8 @@ def draw_background(imname):
     """  Draw background image using a quad. """
     
     # load background image (should be .bmp) to OpenGL texture
-    bg_image = pygame.image.load(imname).convert()
+    bg_image = pygame.image.load(imname)
+    # print (type(bg_image))
     bg_data = pygame.image.tostring(bg_image,"RGBX",1)
     
     glMatrixMode(GL_MODELVIEW)
@@ -100,7 +106,24 @@ def draw_teapot(size):
     glMaterialfv(GL_FRONT,GL_DIFFUSE,[0.5,0.0,0.0,0.0])
     glMaterialfv(GL_FRONT,GL_SPECULAR,[0.7,0.6,0.6,0.0])
     glMaterialf(GL_FRONT,GL_SHININESS,0.25*128.0)
-    glutSolidTeapot(size)
+    glutWireTeapot(size)
+
+def load_and_draw_model(filename):
+    """  Loads a model from an .obj file using objloader.py.
+        Assumes there is a .mtl material file with the same name. """
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0)
+    glEnable(GL_DEPTH_TEST)
+    glClear(GL_DEPTH_BUFFER_BIT)
+
+    # set model color
+    glMaterialfv(GL_FRONT,GL_AMBIENT,[0,0,0,0])
+    glMaterialfv(GL_FRONT,GL_DIFFUSE,[0.5,0.75,1.0,0.0])
+    glMaterialf(GL_FRONT,GL_SHININESS,0.25*128.0)
+
+    # load from a file
+    obj = objloader.OBJ(filename,swapyz=True)
+    glCallList(obj.gl_list)
 
 
 def setup():
@@ -117,9 +140,11 @@ with open('ar_camera.pkl','rb') as f:
 
 setup()
 draw_background('test.jpg')
+
 set_projection_from_camera(K)
 set_modelview_from_camera(Rt)
-draw_teapot(0.1)
+draw_teapot(0.15)
+# load_and_draw_model('toyplane.obj')
 
 while True:
     event = pygame.event.poll()
